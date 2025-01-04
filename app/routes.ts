@@ -7,7 +7,7 @@ import {
 
 export default [
   index("routes/home.tsx"),
-  layout("routes/Layout.tsx", [route("profile", "routes/profile.tsx")]),
+  layout("routes/layout.tsx", [route("profile", "routes/profile.tsx")]),
   layout("./auth/layout.tsx", [
     route("login", "./auth/login.tsx"),
     route("signup", "./auth/signup.tsx"),
