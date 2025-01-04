@@ -1,13 +1,1 @@
-{
-    "version": 2,
-    "builds": [
-      {
-        "src": "app/root.tsx",
-        "use": "@vercel/node"
-      }
-    ],
-    "routes": [
-      { "src": "/(.*)", "dest": "/build/server/index.js" }
-    ]
-  }
-  
+{ "rewrites": [{ "source": "/(.*)", "destination": "/app/route.ts" }] }
