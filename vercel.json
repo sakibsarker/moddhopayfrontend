@@ -1,17 +1,13 @@
-
-  {
+{
     "version": 2,
     "builds": [
       {
-        "src": "build/server/index.js",
+        "src": "app/root.tsx",
         "use": "@vercel/node"
       }
     ],
     "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "/build/server/index.js"
-      }
+      { "src": "/(.*)", "dest": "/build/server/index.js" }
     ]
   }
   
