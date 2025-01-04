@@ -1,15 +1,6 @@
 {
-    "builds": [
-      {
-        "src": "package.json",
-        "use": "@vercel/static-build",
-        "config": {
-          "distDir": "build/client"  
-        }
-      }
-    ],
-    "rewrites": [
-      { "source": "/(.*)", "destination": "/" }
-    ]
-  }
   
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/app/root.tsx" }
+  ]
+}
