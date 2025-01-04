@@ -1,6 +1,6 @@
 {
   
   "rewrites": [
-    { "source": "/(.*)", "destination": "./build/server/index.js" }
+    { "source": "/(.*)", "destination": "/build/server/index.js" }
   ]
 }
