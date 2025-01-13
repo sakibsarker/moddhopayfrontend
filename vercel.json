@@ -1,1 +1,12 @@
-{ "rewrites": [{ "source": "/(.*)", "destination": "./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}" }] }
+{
+    "rewrites": [
+      {
+        "source": "/(.*)",
+        "destination": "/index.html"
+      }
+    ],
+    "buildCommand": "npm run build",
+    "outputDirectory": "build/client",
+    "framework": "vite",
+    "cleanUrls": true
+  }
