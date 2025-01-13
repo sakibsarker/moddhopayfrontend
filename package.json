@@ -6,9 +6,7 @@
     "build": "cross-env NODE_ENV=production react-router build",
     "dev": "react-router dev",
     "start": "cross-env NODE_ENV=production react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc",
-    "vercel-build": "npm run build",
-    "postinstall": "react-router typegen"
+    "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
     "@react-router/fs-routes": "^7.1.1",
