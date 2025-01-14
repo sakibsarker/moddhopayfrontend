@@ -11,8 +11,4 @@ export default defineConfig({
     },
   },
   plugins: [reactRouter(), tsconfigPaths()],
-  build: {
-    outDir: "dist",
-    ssr: false,
-  },
 });
