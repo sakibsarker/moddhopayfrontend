@@ -11,4 +11,7 @@ export default defineConfig({
     },
   },
   plugins: [reactRouter(), tsconfigPaths()],
+  build: {
+    outDir: "build", // This ensures Vite puts the build files in the 'build' folder
+  },
 });
