@@ -14,5 +14,5 @@ export default defineConfig({
   build: {
     outDir: "build", // This ensures Vite puts the build files in the 'build' folder
   },
-  base: "/",
+  base: "https://moddhopayfrontend-q6ha.vercel.app/",
 });
