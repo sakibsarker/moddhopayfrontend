@@ -9,6 +9,7 @@ import {
 } from "react-icons/fi";
 import { Link } from "react-router";
 import Loader from "~/components/Loader";
+
 interface UserProfile {
   id: string;
   name: string;
@@ -16,6 +17,7 @@ interface UserProfile {
   phone?: string; // Optional fields
   role: string;
 }
+
 interface UserWallet {
   wallet: {
     id: string;
@@ -23,59 +25,29 @@ interface UserWallet {
   };
 }
 
+// Add this interface for the API transaction type
+interface Transaction {
+  id: number;
+  amount: string;
+  transaction_type: string;
+  created_at: string;
+  updated_at: string;
+  sender: number;
+  receiver: number;
+  sender_email: string;
+  receiver_email: string;
+}
+
+interface TransactionResponse {
+  Transactions: Transaction[];
+}
+
 // Sample transaction data
-const initialTransactions = [
-  {
-    id: 1,
-    type: "deposit",
-    amount: 500,
-    date: "2023-06-01",
-    description: "Salary",
-    email: "employer@company.com",
-  },
-  {
-    id: 2,
-    type: "withdrawal",
-    amount: 50,
-    date: "2023-06-02",
-    description: "Grocery Shopping",
-    email: "store@grocery.com",
-  },
-  {
-    id: 3,
-    type: "deposit",
-    amount: 200,
-    date: "2023-06-03",
-    description: "Freelance Work",
-    email: "client@freelance.com",
-  },
-  {
-    id: 4,
-    type: "withdrawal",
-    amount: 100,
-    date: "2023-06-04",
-    description: "Utility Bill",
-    email: "billing@utility.com",
-  },
-  {
-    id: 5,
-    type: "deposit",
-    amount: 1000,
-    date: "2023-06-05",
-    description: "Client Payment",
-    email: "bigclient@company.com",
-  },
-];
 
 export default function Wallet() {
   // Sample user data
-  const [user, setUser] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    balance: 1550,
-  });
 
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [transferAmount, setTransferAmount] = useState("");
   const [transferEmail, setTransferEmail] = useState("");
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -163,6 +135,47 @@ export default function Wallet() {
     fetchWallet();
   }, []);
 
+  // Add new useEffect for fetching transactions
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          throw new Error("Authentication token not found.");
+        }
+
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/wallets/transactions/all/`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to fetch transactions.");
+        }
+
+        const data: TransactionResponse = await response.json();
+        setTransactions(data.Transactions);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, []);
+
   if (loading) {
     return <Loader />;
   }
@@ -174,29 +187,37 @@ export default function Wallet() {
   const handleTransfer = (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(transferAmount);
-    if (isNaN(amount) || amount <= 0 || amount > user.balance) {
+    if (isNaN(amount) || amount <= 0 || !userWallet?.wallet?.balance) {
       alert("Invalid transfer amount");
       return;
     }
 
-    const newTransaction = {
-      id: transactions.length + 1,
-      type: "transfer",
-      amount: amount,
-      date: new Date().toISOString().split("T")[0],
-      description: "Transfer",
-      email: transferEmail,
+    const walletBalance = parseFloat(userWallet.wallet.balance);
+    if (amount > walletBalance) {
+      alert("Insufficient balance");
+      return;
+    }
+
+    const newTransaction: Transaction = {
+      id: Math.floor(Math.random() * 1000), // temporary ID
+      amount: amount.toFixed(2),
+      transaction_type: "TRANSFER",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      sender: parseInt(userProfile?.id || "0"),
+      receiver: 0, // You'll need to get the actual receiver ID
+      sender_email: userProfile?.email || "",
+      receiver_email: "", // You'll need to get the actual receiver email
     };
 
     setTransactions([newTransaction, ...transactions]);
-    setUser({ ...user, balance: user.balance - amount });
     setTransferAmount("");
     setTransferEmail("");
   };
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Wallet Details Section */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">
@@ -269,6 +290,9 @@ export default function Wallet() {
                     Type
                   </th>
                   <th className="px-4 py-2 font-semibold text-gray-600">
+                    Transfer Type
+                  </th>
+                  <th className="px-4 py-2 font-semibold text-gray-600">
                     Amount
                   </th>
                   <th className="px-4 py-2 font-semibold text-gray-600">
@@ -285,39 +309,44 @@ export default function Wallet() {
                     key={transaction.id}
                     className="border-b border-gray-200 hover:bg-gray-50"
                   >
-                    <td className="px-4 py-3">{transaction.date}</td>
+                    <td className="px-4 py-3">
+                      {new Date(transaction.created_at).toLocaleDateString()}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          transaction.type === "deposit"
-                            ? "bg-green-100 text-green-800"
-                            : transaction.type === "withdrawal"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-blue-100 text-blue-800"
+                          transaction.transaction_type === "TRANSFER"
+                            ? "bg-blue-100 text-blue-800"
+                            : ""
                         }`}
                       >
-                        {transaction.type === "deposit" ? (
-                          <FiArrowDownLeft className="w-3 h-3 mr-1" />
-                        ) : transaction.type === "withdrawal" ? (
-                          <FiArrowUpRight className="w-3 h-3 mr-1" />
-                        ) : (
-                          <FiSend className="w-3 h-3 mr-1" />
-                        )}
-                        {transaction.type}
+                        <FiSend className="w-3 h-3 mr-1" />
+                        {transaction.transaction_type.toLowerCase()}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {transaction.sender === parseInt(userProfile?.id || "0")
+                        ? "Outgoing"
+                        : "Incoming"}
                     </td>
                     <td
                       className={`px-4 py-3 font-medium ${
-                        transaction.type === "deposit"
-                          ? "text-green-600"
-                          : "text-red-600"
+                        transaction.sender === parseInt(userProfile?.id || "0")
+                          ? "text-red-600"
+                          : "text-green-600"
                       }`}
                     >
-                      {transaction.type === "deposit" ? "+" : "-"}$
-                      {transaction.amount.toFixed(2)}
+                      {transaction.sender === parseInt(userProfile?.id || "0")
+                        ? "-"
+                        : "+"}
+                      ${transaction.amount}
                     </td>
-                    <td className="px-4 py-3">{transaction.description}</td>
-                    <td className="px-4 py-3">{transaction.email}</td>
+                    <td className="px-4 py-3">Transfer</td>
+                    <td className="px-4 py-3">
+                      {transaction.sender === parseInt(userProfile?.id || "0")
+                        ? transaction.receiver_email
+                        : transaction.sender_email}
+                    </td>
                   </tr>
                 ))}
               </tbody>
